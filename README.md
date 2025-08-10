@@ -1,3 +1,4 @@
+HEAD
 # Book Manager Backend API
 
 A clean FastAPI backend for the Book Manager CRUD application with SQLite database and proper validation.
@@ -210,3 +211,7 @@ These provide interactive documentation where you can test all endpoints directl
 - Validation errors return 422 status code
 - Not found errors return 404 status code
 - Server errors return 500 status code 
+=======
+# Book-Management-System
+To create , review , update  and delete any book in the database
+>>>>>>> 8af5486127f711b4537fba0baf7e2999f13d8154
