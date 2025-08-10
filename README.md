@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 HEAD
 # Book Manager Backend API
 
@@ -215,3 +216,6 @@ These provide interactive documentation where you can test all endpoints directl
 # Book-Management-System
 To create , review , update  and delete any book in the database
 >>>>>>> 8af5486127f711b4537fba0baf7e2999f13d8154
+=======
+
+>>>>>>> c48b5d0b07dafc1ac6124f7dcdfc4d994dd6fcf8
