@@ -1,0 +1,6 @@
+fastapi==0.103.2
+uvicorn[standard]==0.23.2
+sqlmodel==0.0.8
+sqlalchemy==1.4.41
+pydantic==1.10.12
+python-multipart==0.0.6 

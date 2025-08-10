@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Manager - CRUD Application</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="logo">📚 Book Manager</h1>
+                    <p class="subtitle">Simple and efficient library management</p>
+                </div>
+                <div class="header-right">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search books...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <button class="btn btn--primary" id="createBtn">
+                        <span class="btn-icon">+</span>
+                        Add Book
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Controls Section -->
+            <section class="controls">
+                <div class="controls-left">
+                    <select id="sortSelect" class="select">
+                        <option value="date">Sort by Date Added</option>
+                        <option value="title">Sort by Title</option>
+                        <option value="author">Sort by Author</option>
+                        <option value="genre">Sort by Genre</option>
+                    </select>
+                </div>
+                <div class="controls-right">
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-number" id="totalBooks">0</span>
+                            <span class="stat-label">Books</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="totalGenres">0</span>
+                            <span class="stat-label">Genres</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Books Section -->
+            <section class="books-section">
+                <div class="books-grid" id="booksList">
+                    <!-- Books will be dynamically loaded here -->
+                </div>
+                
+                <div class="empty-state" id="noBooksMessage" style="display: none;">
+                    <div class="empty-content">
+                        <div class="empty-icon">📚</div>
+                        <h3>No Books Found</h3>
+                        <p>Your library is empty. Add your first book to get started!</p>
+                        <button class="btn btn--primary" id="emptyStateCreateBtn">Add First Book</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Create/Edit Modal -->
+    <div id="bookModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Add New Book</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+            <form id="bookForm" class="book-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="bookTitle" class="form-label">Title *</label>
+                        <input type="text" id="bookTitle" name="title" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookAuthor" class="form-label">Author *</label>
+                        <input type="text" id="bookAuthor" name="author" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookGenre" class="form-label">Genre *</label>
+                        <select id="bookGenre" name="genre" class="form-input" required>
+                            <option value="">Select Genre</option>
+                            <option value="Fiction">Fiction</option>
+                            <option value="Science Fiction">Science Fiction</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Mystery">Mystery</option>
+                            <option value="Thriller">Thriller</option>
+                            <option value="Non-Fiction">Non-Fiction</option>
+                            <option value="Biography">Biography</option>
+                            <option value="History">History</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Philosophy">Philosophy</option>
+                            <option value="Poetry">Poetry</option>
+                            <option value="Children's Literature">Children's Literature</option>
+                            <option value="Political Fiction">Political Fiction</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookIsbn" class="form-label">ISBN</label>
+                        <input type="text" id="bookIsbn" name="isbn" class="form-input" placeholder="Optional">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn btn--secondary">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Book Details</h3>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="book-details" id="bookDetails">
+                <!-- Book details will be loaded here -->
+            </div>
+            <div class="modal-actions">
+                <button id="editBookBtn" class="btn btn--secondary">Edit</button>
+                <button id="deleteBookBtn" class="btn btn--danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-content--small">
+            <div class="modal-header">
+                <h3 class="modal-title">Delete Book</h3>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="delete-confirmation">
+                <div class="warning-icon">⚠️</div>
+                <p>Are you sure you want to delete <strong id="deleteBookTitle">this book</strong>?</p>
+                <p class="delete-warning">This action cannot be undone.</p>
+            </div>
+            <div class="modal-actions">
+                <button id="cancelDeleteBtn" class="btn btn--secondary">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn btn--danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
