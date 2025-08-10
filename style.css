@@ -1,4 +1,5 @@
 /* ===== CSS VARIABLES ===== */
+/* ===== CSS VARIABLES ===== */
 :root {
     /* Colors */
     --color-primary: #2563eb;
@@ -7,46 +8,63 @@
     --color-success: #059669;
     --color-danger: #dc2626;
     --color-warning: #d97706;
-    
+    --color-info: #0ea5e9;
+    --color-accent: #a21caf;
+    --color-light: #506285;
+    --color-dark: #0f172a;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+    --gradient-accent: linear-gradient(90deg, #a21caf 0%, #2563eb 100%);
+
     /* Background Colors */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
+    --bg-primary: #f8eaea;      /* light wine */
+    --bg-secondary: #f3e6e6;    /* lighter wine */
     --bg-tertiary: #f1f5f9;
     --bg-card: #ffffff;
-    
+    --bg-accent: #f3e8ff;
+
     /* Text Colors */
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --text-muted: #94a3b8;
     --text-white: #ffffff;
-    
+    --text-accent: #a21caf;
+
     /* Border Colors */
     --border-light: #e2e8f0;
     --border-medium: #cbd5e1;
     --border-focus: #2563eb;
-    
+    --border-accent: #a21caf;
+
     /* Shadows */
+    --shadow-xs: 0 0.5px 1.5px 0 rgba(0,0,0,0.03);
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
+
     /* Spacing */
+    --spacing-xxs: 0.125rem;
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 1.5rem;
     --spacing-xl: 2rem;
     --spacing-2xl: 3rem;
-    
+    --spacing-3xl: 4rem;
+
     /* Border Radius */
+    --radius-xs: 0.25rem;
     --radius-sm: 0.375rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
-    
+    --radius-full: 9999px;
+
     /* Typography */
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-size-xxs: 0.65rem;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -54,7 +72,8 @@
     --font-size-xl: 1.25rem;
     --font-size-2xl: 1.5rem;
     --font-size-3xl: 1.875rem;
-    
+    --font-size-4xl: 2.25rem;
+
     /* Transitions */
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease;
@@ -73,10 +92,12 @@ body {
     font-size: var(--font-size-base);
     line-height: 1.6;
     color: var(--text-primary);
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-secondary); /* uses the new light wine color */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+/* ...rest of your CSS remains unchanged... */
 
 .container {
     max-width: 1200px;
@@ -86,7 +107,7 @@ body {
 
 /* ===== HEADER ===== */
 .header {
-    background-color: var(--bg-primary);
+    background: var(--gradient-primary);
     border-bottom: 1px solid var(--border-light);
     padding: var(--spacing-lg) 0;
     position: sticky;
@@ -111,15 +132,19 @@ body {
 .logo {
     font-size: var(--font-size-2xl);
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-white);
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    text-shadow: 0 2px 8px rgba(37,99,235,0.12);
 }
 
 .subtitle {
-    color: var(--text-secondary);
+    color: var(--text-accent);
     font-size: var(--font-size-sm);
+    font-weight: 1000;
+    color: #cbd5e1;
+    font-weight: 600;
 }
 
 .header-right {
@@ -142,6 +167,7 @@ body {
     font-size: var(--font-size-sm);
     background-color: var(--bg-primary);
     transition: var(--transition-normal);
+    box-shadow: var(--shadow-xs);
 }
 
 .search-input:focus {
@@ -173,16 +199,18 @@ body {
     cursor: pointer;
     transition: var(--transition-normal);
     white-space: nowrap;
+    box-shadow: var(--shadow-xs);
 }
 
 .btn--primary {
-    background-color: var(--color-primary);
+    background: var(--gradient-primary);
     color: var(--text-white);
+    border: 1px solid var(--color-primary);
 }
 
 .btn--primary:hover {
-    background-color: var(--color-primary-hover);
-    transform: translateY(-1px);
+    background: var(--gradient-accent);
+    transform: translateY(-1px) scale(1.03);
     box-shadow: var(--shadow-md);
 }
 
@@ -208,6 +236,18 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+.btn--accent {
+    background: var(--gradient-accent);
+    color: var(--text-white);
+    border: 1px solid var(--color-accent);
+}
+
+.btn--accent:hover {
+    background: var(--color-accent);
+    color: var(--text-white);
+    box-shadow: var(--shadow-md);
+}
+
 .btn-icon {
     font-size: var(--font-size-lg);
     font-weight: 700;
@@ -216,6 +256,8 @@ body {
 /* ===== MAIN CONTENT ===== */
 .main {
     padding: var(--spacing-2xl) 0;
+    background: var(--bg-accent);
+    min-height: 100vh;
 }
 
 /* ===== CONTROLS SECTION ===== */
@@ -263,6 +305,10 @@ body {
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-xs);
+    background: var(--bg-accent);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    box-shadow: var(--shadow-xs);
 }
 
 .stat-number {
@@ -292,16 +338,32 @@ body {
 
 /* ===== BOOK CARDS ===== */
 .book-card {
-    background-color: var(--bg-card);
+    background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
     transition: var(--transition-normal);
     cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    position: relative;
+    overflow: hidden;
+}
+
+.book-card::before {
+    content: "";
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    opacity: 0.08;
+    border-radius: 50%;
+    z-index: 0;
 }
 
 .book-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     box-shadow: var(--shadow-lg);
     border-color: var(--border-focus);
 }
@@ -311,12 +373,14 @@ body {
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: var(--spacing-md);
+    z-index: 1;
+    position: relative;
 }
 
 .book-title {
     font-size: var(--font-size-lg);
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--color-accent);
     margin-bottom: var(--spacing-xs);
     line-height: 1.4;
 }
@@ -386,7 +450,7 @@ body {
     display: inline-block;
     padding: var(--spacing-xs) var(--spacing-sm);
     background-color: var(--bg-tertiary);
-    color: var(--text-primary);
+    color: var(--color-accent);
     border-radius: var(--radius-sm);
     font-size: var(--font-size-xs);
     font-weight: 500;
@@ -741,4 +805,4 @@ body {
     .book-actions {
         opacity: 1;
     }
-} 
+}
