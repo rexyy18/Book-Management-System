@@ -11,19 +11,21 @@ class BookBase(BaseModel):
 
 class BookCreate(BookBase):
     """Schema for creating a new book"""
-    pass
+    favorite: bool = False
 
 class BookRead(BookBase):
     """Schema for reading book data"""
     id: int
-    date_added: datetime
+    createdAt: datetime
+    favorite: bool
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class BookUpdate(BaseModel):
     """Schema for updating a book (all fields optional)"""
     title: Optional[str] = Field(None, min_length=1, max_length=255, description="Book title")
     author: Optional[str] = Field(None, min_length=1, max_length=255, description="Book author")
     genre: Optional[str] = Field(None, min_length=1, max_length=100, description="Book genre")
-    isbn: Optional[str] = Field(None, max_length=20, description="Book ISBN") 
+    isbn: Optional[str] = Field(None, max_length=20, description="Book ISBN")
+    favorite: Optional[bool] = Field(None, description="Whether the book is a favorite") 

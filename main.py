@@ -3,15 +3,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from typing import List
 import uvicorn
+from contextlib import asynccontextmanager
 
 from database import create_db_and_tables, get_session
 from models import Book
 from schemas import BookCreate, BookRead, BookUpdate
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Create database tables on startup.
+    """
+    create_db_and_tables()
+    yield
+
 app = FastAPI(
     title="Book Manager API",
     description="A simple CRUD API for managing books",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Add CORS middleware for frontend integration
@@ -22,11 +32,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-async def startup_event():
-    """Create database tables on startup"""
-    create_db_and_tables()
 
 @app.get("/")
 async def root():
@@ -43,7 +48,7 @@ async def create_book(book: BookCreate, session: Session = Depends(get_session))
          -H "Content-Type: application/json" \
          -d '{"title": "The Great Gatsby", "author": "F. Scott Fitzgerald", "genre": "Fiction", "isbn": "978-0743273565"}'
     """
-    db_book = Book.from_orm(book)
+    db_book = Book.model_validate(book)
     session.add(db_book)
     session.commit()
     session.refresh(db_book)
@@ -88,7 +93,7 @@ async def update_book(book_id: int, book_update: BookUpdate, session: Session = 
         raise HTTPException(status_code=404, detail="Book not found")
     
     # Update only provided fields
-    book_data = book_update.dict(exclude_unset=True)
+    book_data = book_update.model_dump(exclude_unset=True)
     for field, value in book_data.items():
         setattr(db_book, field, value)
     

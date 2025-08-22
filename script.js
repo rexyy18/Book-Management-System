@@ -2,69 +2,69 @@
 (function () {
     'use strict';
 
-    // ===== DATA STORAGE =====
-    const StorageService = {
-        getAllBooks() {
-            const books = localStorage.getItem('books');
-            return books ? JSON.parse(books) : [];
-        },
-        saveAllBooks(books) {
-            localStorage.setItem('books', JSON.stringify(books));
-        },
-        getBook(id) {
-            const books = this.getAllBooks();
-            return books.find(book => book.id === id);
-        },
-        createBook(bookData) {
-            const books = this.getAllBooks();
-            const newBook = {
-                id: Date.now().toString(),
-                ...bookData,
-                createdAt: new Date().toISOString(),
-                favorite: false
+    const API_URL = 'http://localhost:8000';
+
+    // ===== API SERVICE =====
+    const ApiService = {
+        async _fetch(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers,
             };
-            books.push(newBook);
-            this.saveAllBooks(books);
-            return newBook;
+            const response = await fetch(url, { ...options, headers });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+                throw new Error(errorData.detail || 'An unknown error occurred');
+            }
+            if (response.status === 204) { // No Content
+                return null;
+            }
+            return response.json();
         },
+
+        getAllBooks() {
+            return this._fetch(`${API_URL}/books`);
+        },
+
+        getBook(id) {
+            return this._fetch(`${API_URL}/books/${id}`);
+        },
+
+        createBook(bookData) {
+            return this._fetch(`${API_URL}/books`, {
+                method: 'POST',
+                body: JSON.stringify(bookData),
+            });
+        },
+
         updateBook(id, bookData) {
-            const books = this.getAllBooks();
-            const index = books.findIndex(book => book.id === id);
-            if (index !== -1) {
-                books[index] = { ...books[index], ...bookData, updatedAt: new Date().toISOString() };
-                this.saveAllBooks(books);
-                return books[index];
-            }
-            throw new Error('Book not found');
+            return this._fetch(`${API_URL}/books/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(bookData),
+            });
         },
+
         deleteBook(id) {
-            const books = this.getAllBooks();
-            const filteredBooks = books.filter(book => book.id !== id);
-            this.saveAllBooks(filteredBooks);
-            return true;
+            return this._fetch(`${API_URL}/books/${id}`, {
+                method: 'DELETE',
+            });
         },
-        toggleFavorite(id) {
-            const books = this.getAllBooks();
-            const index = books.findIndex(book => book.id === id);
-            if (index !== -1) {
-                books[index].favorite = !books[index].favorite;
-                this.saveAllBooks(books);
-                return books[index].favorite;
-            }
-            throw new Error('Book not found');
+
+        async toggleFavorite(id) {
+            const book = await this.getBook(id);
+            return this.updateBook(id, { favorite: !book.favorite });
         },
+        
         exportBooks() {
-            return JSON.stringify(this.getAllBooks(), null, 2);
+            // This will now just be a link to the backend endpoint if we want to implement it
+            // For now, we can simulate it by fetching all books and creating a JSON string
+            return this.getAllBooks().then(books => JSON.stringify(books, null, 2));
         },
-        importBooks(json) {
-            let imported = [];
-            try {
-                imported = JSON.parse(json);
-                if (!Array.isArray(imported)) throw new Error();
-            } catch {
-                throw new Error('Invalid JSON format');
-            }
-            this.saveAllBooks(imported);
+
+        async importBooks(json) {
+            // This is more complex with a backend. It would require a new endpoint.
+            // For now, this will be disabled in the UI.
+            throw new Error('Import not supported when connected to backend.');
         }
     };
 
@@ -122,7 +122,7 @@
             ThemeService.init();
             this.bindEvents();
             this.loadBooks();
-            this.addSampleData();
+            // this.addSampleData(); // Sample data should come from the backend now
             this.renderGenreFilter();
         },
 
@@ -217,43 +217,30 @@
 
             // Export/Import
             if (this.elements.exportBtn) {
-                this.elements.exportBtn.addEventListener('click', () => {
-                    const data = StorageService.exportBooks();
-                    const blob = new Blob([data], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'books.json';
-                    a.click();
-                    URL.revokeObjectURL(url);
+                this.elements.exportBtn.addEventListener('click', async () => {
+                    try {
+                        const data = await ApiService.exportBooks();
+                        const blob = new Blob([data], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'books.json';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    } catch (error) {
+                        this.showError('Failed to export books: ' + error.message);
+                    }
                 });
             }
-            if (this.elements.importBtn && this.elements.importInput) {
-                this.elements.importBtn.addEventListener('click', () => {
-                    this.elements.importInput.click();
-                });
-                this.elements.importInput.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (evt) => {
-                        try {
-                            StorageService.importBooks(evt.target.result);
-                            this.showSuccess('Books imported!');
-                            this.loadBooks();
-                        } catch (err) {
-                            this.showError('Import failed: ' + err.message);
-                        }
-                    };
-                    reader.readAsText(file);
-                });
+            if (this.elements.importBtn) {
+                this.elements.importBtn.style.display = 'none'; // Hide import button
             }
         },
 
-        loadBooks() {
+        async loadBooks() {
             try {
                 this.showLoading();
-                this.allBooks = StorageService.getAllBooks();
+                this.allBooks = await ApiService.getAllBooks();
                 this.renderBooks(this.filterBooks(this.allBooks));
                 this.updateStats(this.allBooks);
                 this.renderGenreFilter();
@@ -261,51 +248,6 @@
                 this.showError('Failed to load books: ' + error.message);
             } finally {
                 this.hideLoading();
-            }
-        },
-
-        addSampleData() {
-            const books = StorageService.getAllBooks();
-            if (books.length === 0) {
-                const sampleBooks = [
-                    {
-                        title: "The Great Gatsby",
-                        author: "F. Scott Fitzgerald",
-                        genre: "Fiction",
-                        isbn: "978-0743273565"
-                    },
-                    {
-                        title: "To Kill a Mockingbird",
-                        author: "Harper Lee",
-                        genre: "Fiction",
-                        isbn: "978-0446310789"
-                    },
-                    {
-                        title: "1984",
-                        author: "George Orwell",
-                        genre: "Science Fiction",
-                        isbn: "978-0451524935"
-                    },
-                    {
-                        title: "Pride and Prejudice",
-                        author: "Jane Austen",
-                        genre: "Romance",
-                        isbn: "978-0141439518"
-                    },
-                    {
-                        title: "The Hobbit",
-                        author: "J.R.R. Tolkien",
-                        genre: "Fantasy",
-                        isbn: "978-0547928241"
-                    }
-                ];
-
-                sampleBooks.forEach(book => {
-                    StorageService.createBook(book);
-                });
-
-                this.loadBooks();
-                this.showSuccess('Sample books added to your library!');
             }
         },
 
@@ -382,7 +324,7 @@
             });
         },
 
-        handleCardAction(action, bookId, btn) {
+        async handleCardAction(action, bookId, btn) {
             switch (action) {
                 case 'view':
                     this.openViewModal(bookId);
@@ -394,9 +336,18 @@
                     this.openDeleteModal(bookId);
                     break;
                 case 'favorite':
-                    const isFav = StorageService.toggleFavorite(bookId);
-                    btn.innerHTML = isFav ? '⭐' : '☆';
-                    this.loadBooks();
+                    try {
+                        const updatedBook = await ApiService.toggleFavorite(bookId);
+                        btn.innerHTML = updatedBook.favorite ? '⭐' : '☆';
+                        // Find the book in the local array and update it to re-render correctly
+                        const bookIndex = this.allBooks.findIndex(b => b.id == bookId);
+                        if (bookIndex !== -1) {
+                            this.allBooks[bookIndex].favorite = updatedBook.favorite;
+                        }
+                        this.renderBooks(this.filterBooks(this.allBooks));
+                    } catch (error) {
+                        this.showError('Failed to toggle favorite: ' + error.message);
+                    }
                     break;
             }
         },
@@ -416,9 +367,9 @@
             this.openModal(this.elements.bookModal);
         },
 
-        openEditModal(bookId) {
+        async openEditModal(bookId) {
             try {
-                const book = StorageService.getBook(bookId);
+                const book = await ApiService.getBook(bookId);
                 if (!book) {
                     this.showError('Book not found');
                     return;
@@ -438,9 +389,9 @@
             }
         },
 
-        openViewModal(bookId) {
+        async openViewModal(bookId) {
             try {
-                const book = StorageService.getBook(bookId);
+                const book = await ApiService.getBook(bookId);
                 if (!book) {
                     this.showError('Book not found');
                     return;
@@ -481,9 +432,9 @@
             }
         },
 
-        openDeleteModal(bookId) {
+        async openDeleteModal(bookId) {
             try {
-                const book = StorageService.getBook(bookId);
+                const book = await ApiService.getBook(bookId);
                 if (!book) {
                     this.showError('Book not found');
                     return;
@@ -497,7 +448,7 @@
             }
         },
 
-        handleFormSubmit() {
+        async handleFormSubmit() {
             const formData = new FormData(this.elements.bookForm);
             const bookData = {
                 title: formData.get('title').trim(),
@@ -513,10 +464,10 @@
 
             try {
                 if (this.currentBookId) {
-                    StorageService.updateBook(this.currentBookId, bookData);
+                    await ApiService.updateBook(this.currentBookId, bookData);
                     this.showSuccess('Book updated successfully!');
                 } else {
-                    StorageService.createBook(bookData);
+                    await ApiService.createBook(bookData);
                     this.showSuccess('Book added successfully!');
                 }
 
@@ -527,20 +478,11 @@
             }
         },
 
-        handleDelete(bookId) {
+        async handleDelete(bookId) {
             try {
-                this.lastDeletedBook = StorageService.getBook(bookId);
-                StorageService.deleteBook(bookId);
-                this.showUndoNotification('Book deleted! ', 'Undo', () => {
-                    if (this.lastDeletedBook) {
-                        const books = StorageService.getAllBooks();
-                        books.push(this.lastDeletedBook);
-                        StorageService.saveAllBooks(books);
-                        this.lastDeletedBook = null;
-                        this.loadBooks();
-                        this.showSuccess('Book restored!');
-                    }
-                });
+                // No more undo for backend operations to keep it simple
+                await ApiService.deleteBook(bookId);
+                this.showSuccess('Book deleted!');
                 this.closeAllModals();
                 this.loadBooks();
             } catch (error) {
@@ -680,8 +622,7 @@
 
         renderGenreFilter() {
             if (!this.elements.genreFilter) return;
-            const books = StorageService.getAllBooks();
-            const genres = Array.from(new Set(books.map(book => book.genre))).sort();
+            const genres = Array.from(new Set(this.allBooks.map(book => book.genre))).sort();
             this.elements.genreFilter.innerHTML = `<option value="all">All Genres</option>` +
                 genres.map(g => `<option value="${this.escapeHtml(g)}">${this.escapeHtml(g)}</option>`).join('');
         }

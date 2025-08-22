@@ -10,6 +10,8 @@ class Book(SQLModel, table=True):
     genre: str = Field(max_length=100, description="Book genre")
     isbn: Optional[str] = Field(default=None, max_length=20, description="Book ISBN")
     date_added: datetime = Field(default_factory=datetime.utcnow, description="Date when book was added")
+    favorite: bool = Field(default=False, description="Is the book a favorite")
+    createdAt: datetime = Field(default_factory=datetime.utcnow, nullable=False, description="Creation timestamp")
     
     class Config:
         schema_extra = {
@@ -19,4 +21,4 @@ class Book(SQLModel, table=True):
                 "genre": "Fiction",
                 "isbn": "978-0743273565"
             }
-        } 
+        }
